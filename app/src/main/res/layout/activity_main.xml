@@ -55,5 +55,27 @@
             android:text="logout"
             android:onClick="signOut"/>
 
+        <Button
+            android:id="@+id/request"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Requests"
+            android:visibility="invisible" />
+
+        <Button
+            android:id="@+id/emergency"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="100dp"
+            android:text="Emergency" />
+
+        <Button
+            android:id="@+id/simulate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="100dp"
+            android:layout_marginTop="50dp"
+            android:text="Simulate Wearable" />
+
     </LinearLayout>
 </android.support.constraint.ConstraintLayout>

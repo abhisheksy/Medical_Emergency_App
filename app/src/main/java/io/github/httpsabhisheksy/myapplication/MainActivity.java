@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.Toast;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -24,9 +23,6 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
-import java.util.ArrayList;
-import java.util.List;
-
 
 public class MainActivity extends AppCompatActivity implements LocationListener{
 
@@ -37,13 +33,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
     static double min=1000000;
     public static String uid,uidh,sid;
 
-    ListView listViewPatients;
-    List<UserData> patientList;
-
 
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     DatabaseReference myRef = database.getReference();
-    BroadcastReceiver broadcastReceiver;
+    //BroadcastReceiver broadcastReceiver;
+
+    Button emergency;
+    Button simul;
+    Button req;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,49 +55,79 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
             startActivity(intent);
         }
 
-        //listViewPatients = (ListView) findViewById(R.id.patientList);
-        patientList = new ArrayList<>();
+        else {
 
-        //----------------------------------Token show on app open-------------------
-        /*broadcastReceiver = new BroadcastReceiver(){
-            @Override
-            public void onReceive(Context context, Intent intent){
-                Toast.makeText(MainActivity.this,SharedPrefManager.getInstance(MainActivity.this).getToken(),Toast.LENGTH_LONG).show();
-            }
-        };
-        if(SharedPrefManager.getInstance(this).getToken()!=null)
-            Toast.makeText(MainActivity.this,SharedPrefManager.getInstance(MainActivity.this).getToken(),Toast.LENGTH_LONG).show();
-        registerReceiver(broadcastReceiver, new IntentFilter(MyFirebaseInstanceIdService.TOKEN_BROADCAST));*/
-
-
-        //------------------------------------Hospital UID Change Listener-----------
-        SharedPreferences shared;
-        shared=getSharedPreferences("activity_type",Context.MODE_PRIVATE);
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        uidh = user.getUid();
-
-        if(shared.getBoolean("radio_hospital",false)){
-            myRef = database.getReference("hospitals/" + uidh + "/uid");
-            myRef.addValueEventListener(new ValueEventListener(){
-
+            req = (Button) findViewById(R.id.request);
+            req.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onDataChange(DataSnapshot dataSnapshot) {
-                    sid=dataSnapshot.getValue(String.class);
-                    if(sid!=null && uidh!=null)
-                        if(!sid.equals(uidh))
-                            startActivity(new Intent(MainActivity.this,NewPatientsActivity.class));
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-                    Toast.makeText(MainActivity.this,"Something is really wrong here !!",Toast.LENGTH_LONG).show();
+                public void onClick(View v) {
+                    startActivity(new Intent(MainActivity.this, NewPatientsActivity.class));
                 }
             });
+
+            emergency = (Button) findViewById(R.id.emergency);
+            emergency.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(MainActivity.this, "In App Manual Alert Raise Requested !!", Toast.LENGTH_LONG).show();
+                    sendAlerts();
+                }
+            });
+
+            simul = (Button) findViewById(R.id.simulate);
+            simul.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Toast.makeText(MainActivity.this, "Simulated extreme pulse rate and oxygen level in blood", Toast.LENGTH_LONG).show();
+                    sendAlerts();
+                }
+            });
+
+            //----------------------------------Token show on app open-------------------
+            /*broadcastReceiver = new BroadcastReceiver(){
+                @Override
+                public void onReceive(Context context, Intent intent){
+                    Toast.makeText(MainActivity.this,SharedPrefManager.getInstance(MainActivity.this).getToken(),Toast.LENGTH_LONG).show();
+                }
+            };
+            if(SharedPrefManager.getInstance(this).getToken()!=null)
+                Toast.makeText(MainActivity.this,SharedPrefManager.getInstance(MainActivity.this).getToken(),Toast.LENGTH_LONG).show();
+            registerReceiver(broadcastReceiver, new IntentFilter(MyFirebaseInstanceIdService.TOKEN_BROADCAST));*/
+
+
+            //------------------------------------Hospital UID Change Listener-----------
+            SharedPreferences shared;
+            shared = getSharedPreferences("activity_type", Context.MODE_PRIVATE);
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            uidh = user.getUid();
+
+            if (shared.getBoolean("radio_hospital", false)) {
+
+                req.setVisibility(View.VISIBLE);
+                emergency.setVisibility(View.INVISIBLE);
+                simul.setVisibility(View.INVISIBLE);
+
+                myRef = database.getReference("hospitals/" + uidh + "/uid");
+                myRef.addValueEventListener(new ValueEventListener() {
+
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        sid = dataSnapshot.getValue(String.class);
+                        if (sid != null && uidh != null)
+                            if (!sid.equals(uidh))
+                                startActivity(new Intent(MainActivity.this, NewPatientsActivity.class));
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                        Toast.makeText(MainActivity.this, "Something is really wrong here !!", Toast.LENGTH_LONG).show();
+                    }
+                });
+            }
+
+
+            getloc();
         }
-
-
-
-        getloc();
 
     }
 
@@ -182,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
         return dist; // output distance, in MILES
     }
     static Double lat2,lng2;
-    public static void sendAlerts(){
+    public void sendAlerts(){
 
         FirebaseDatabase database = FirebaseDatabase.getInstance();
         DatabaseReference myRef;
@@ -202,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
                     }
                     Log.d("CheckingDude","dumper " + uid + " done");
                 }
+                //startActivity(new Intent(MainActivity.this, NewPatientsActivity.class));
             }
 
             @Override
@@ -210,10 +238,10 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
 
             //myRef.addListenerForSingleValueEvent(new ValueEventListener(){
                 //FirebaseDatabase
-        database = FirebaseDatabase.getInstance();
+                database = FirebaseDatabase.getInstance();
                 //DatabaseReference
-        myRef = database.getReference();
-               // @Override
+                //myRef = database.getReference();
+                // @Override
                 //public void onDataChange(DataSnapshot dataSnapshot) {
                     myRef = database.getReference("hospitals/" + uid + "/uid");
                     FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -227,6 +255,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
                 //}
 
            // });
+
 
 
     }
@@ -328,27 +357,5 @@ public class MainActivity extends AppCompatActivity implements LocationListener{
     }
 
 
-    /*@Override
-    public void onStart(){
-        super.onStart();
-        myRef = database.getReference("users");
-        myRef.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                patientList.clear();
-                for(DataSnapshot patientSnapshot: dataSnapshot.getChildren()) {
-                    UserData userData = patientSnapshot.getValue(UserData.class);
-                    patientList.add(userData);
-                }
-                PatientList adapter = new PatientList(MainActivity.this,patientList);
-                listViewPatients.setAdapter(adapter);
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-    }*/
 
 }
